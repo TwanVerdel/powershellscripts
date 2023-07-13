@@ -1,0 +1,26 @@
+Set-Mailbox -Identity <userUPN> -GrantSendOnBehalfTo <userUPN>
+Add-MailboxPermission "<userUPN>" -User "<userUPN>" -AccessRights FullAccess
+
+Get-Mailbox <userUPN> | select Name,UserPrincipalName,PrimarySmtpAddress,@{l='SendOnBehalfOf';e={$_.GrantSendOnBehalfTo -join ";"}} | Export-CSV "D:\SendOnBehalf.csv"
+Get-MailboxPermission <userUPN> | Where { ($_.IsInherited -eq $False) -and ($_.AccessRights -like "*FullAccess*") -and -not ($_.User -like "NT AUTHORITYSELF") } |
+Select Identity, User | Export-CSV "D:\FullAccess.csv"
+
+get-content '$path\$file.txt' | 
+foreach {Set-Mailbox '<sharedMailbox>' -GrantSendOnBehalfTo @{add=$_}}
+
+Set-Mailbox -Identity <sharedMailbox> -MessageCopyForSendOnBehalfEnabled"$True
+
+EmailAddress
+<userUPN>
+
+Set-Mailbox <userUPN> -Type shared
+
+Set-Mailbox -Identity <sharedMailbox> -GrantSendOnBehalfTo <userUPN>
+
+Set-Mailbox <sharedMailbox> -GrantSendOnBehalfTo @{Add="<userUPN>"}
+
+Add-MailboxPermission <sharedMailbox> -User "<userUPN>" -AccessRights FullAccess
+
+Get-Mailbox <sharedMailbox> | select Name,UserPrincipalName,PrimarySmtpAddress,@{l='SendOnBehalfOf';e={$_.GrantSendOnBehalfTo -join ";"}} | Export-CSV "D:\SendOnBehalf.csv"
+
+Get-EXOMailbox -identity <sharedMailbox> | Format-List
